@@ -9,10 +9,21 @@
     <button (click)="logout()" [hidden]="!loggedIn">Logout</button>
     <br>
     <h2>Search for people</h2>
-    <input placeholder="Name" type="text" [(ngModel)]="userSearchFilter" (ngModelChange)="getUsers()">
+    <input placeholder="Name" type="text" [(ngModel)]="userSearchFilter" (ngModelChange)="updateUsers(userSearchFilter)">
+    
     <div>
         <ul>
-            <li *ngFor="let u of users"> {{ u.displayName }} ({{ u.userPrincipalName }})</li>
+            <li *ngFor="let u of users">
+                <button (click)="addFriend(u!)" *ngIf="!isFriend(u!)">Add</button>
+                {{ u.displayName }} ({{ u.userPrincipalName }})
+            </li> 
+        </ul>
+    </div>
+    <br>
+    <h2>My Friends</h2>
+    <div>
+        <ul>
+            <li *ngFor="let u of friends">{{ u.displayName }} ({{ u.userPrincipalName }})</li>
         </ul>
     </div>
 </div>
