@@ -19,33 +19,29 @@ namespace AADFriendsPickerAPI.Controllers
         
         public record AddFriendModel(string FriendId);
 
-        [Route("getAll")]
-        [HttpGet]
-        [Authorize]
-        public async Task<IEnumerable<string>> GetAll()
+        public async Task<IEnumerable<string>> GetAllFriends()
         {
             var userId = HttpContext.User.Claims.First(c => c.Type == ClaimConstants.ObjectId).Value;
             var friendShips = await _context.Friendships.Where(f => f.FirstUserId == userId || f.SecondUserId == userId).ToArrayAsync();
-            var friendIds = friendShips.Select(f => (f.FirstUserId == userId) ? f.SecondUserId : f.FirstUserId);
-            return friendIds;
-        }
-
-        [Route("isFriend")]
-        [HttpPost]
-        [Authorize]
-        public async Task<bool> IsFriend([FromBody] string friendId)
-        {
-            return (await GetAll()).Any(f => f == friendId);
+            return friendShips.Select(f => (f.FirstUserId == userId) ? f.SecondUserId : f.FirstUserId);
         }
         
+        [Route("getAll")]
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetAll()
+        {
+            return Ok(await GetAllFriends());
+        }
+
         [Route("add")]
         [HttpPost]
         [Authorize]
-        public async Task<IEnumerable<string>> AddFriend([FromBody] AddFriendModel model)
+        public async Task<IActionResult> AddFriend([FromBody] AddFriendModel model)
         {
             var friendId = model.FriendId;
             // Check if the user is not already friends with the given person
-            if (!await IsFriend(friendId))
+            if ((await GetAllFriends()).All(f => f != friendId))
             {
                 await using var transaction = await _context.Database.BeginTransactionAsync();
                 var friendShip = new Friendship

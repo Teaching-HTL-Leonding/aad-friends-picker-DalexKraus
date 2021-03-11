@@ -23,7 +23,7 @@
     <h2>My Friends</h2>
     <div>
         <ul>
-            <li *ngFor="let u of friends">{{ u.displayName }} ({{ u.userPrincipalName }})</li>
+            <li *ngFor="let u of friends">{{ u?.displayName }} ({{ u?.userPrincipalName }})</li>
         </ul>
     </div>
 </div>

@@ -23,7 +23,6 @@ export class AppComponent implements OnInit {
 
     loggedIn = false;
     profile!: MicrosoftGraph.User;
-
     userSearchFilter: string = "";
     addFriendSearchFilter: string = "";
     users!: MicrosoftGraph.User[];
@@ -73,17 +72,10 @@ export class AppComponent implements OnInit {
         this.users = (await this.client.get<IODataResult<MicrosoftGraph.User[]>>(url).toPromise()).value;
     }
 
-    private async lookupUser(userName: string): Promise<MicrosoftGraph.User>
+    private async lookupUser(userId: string): Promise<MicrosoftGraph.User>
     {
-        let params = new HttpParams().set("$top", "1");
-        if (this.userSearchFilter) {
-          params = params.set(
-            "$filter",
-            `startsWith(displayName, '${userName}')`
-          );
-        }
-        let url = `https://graph.microsoft.com/v1.0/users?${params.toString()}`;
-        return (await this.client.get<IODataResult<MicrosoftGraph.User[]>>(url).toPromise()).value![0];
+        let url = `https://graph.microsoft.com/v1.0/users/${userId}`;
+        return (await this.client.get<MicrosoftGraph.User>(url).toPromise());
     }
 
     async updateFriends() {
@@ -96,8 +88,10 @@ export class AppComponent implements OnInit {
 
         // Lookup each id with their corresponding name
         for (const friendId of this.friendIds) {
-            let userData = await this.lookupUser(friendId);
-            this.friends.push(userData);
+            if (friendId != null) {
+                let userData = await this.lookupUser(friendId);
+                this.friends.push(userData);
+            }
         }
     }
     
@@ -105,9 +99,10 @@ export class AppComponent implements OnInit {
         var model = new AddFriendModel(user!.id!.toString());
         this.friendIds = await this.client.post<AddFriendModel>(environment.customApi + "/add", model).toPromise();
         this.userSearchFilter = "";
+        await this.updateFriends();
     }
 
     public isFriend(user: MicrosoftGraph.User): boolean {
-        return this.profile.id == user.id && this.friendIds != null && this.friendIds.indexOf(user!.id) != -1;
+        return this.friendIds != null && this.friendIds.indexOf(user!.id) != -1;
     }
 }
