@@ -1,0 +1,18 @@
+<h1>AAD Friends Picker</h1>
+
+<div [hidden]="loggedIn">
+    <p>You are currently not logged in.</p>
+    <button (click)="login()" [hidden]="loggedIn">Login</button>
+</div>
+<div *ngIf="loggedIn">
+    <p>Currently logged in as <b>{{ profile.displayName }}</b></p>
+    <button (click)="logout()" [hidden]="!loggedIn">Logout</button>
+    <br>
+    <h2>Search for people</h2>
+    <input placeholder="Name" type="text" [(ngModel)]="userSearchFilter" (ngModelChange)="getUsers()">
+    <div>
+        <ul>
+            <li *ngFor="let u of users"> {{ u.displayName }} ({{ u.userPrincipalName }})</li>
+        </ul>
+    </div>
+</div>
