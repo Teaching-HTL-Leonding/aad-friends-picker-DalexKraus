@@ -18,6 +18,7 @@ namespace AADFriendsPickerAPI.Controllers
         public FriendsController(FriendsDbContext context) => _context = context;
         
         public record AddFriendModel(string FriendId);
+        public record RemoveFriendModel(string FriendId);
 
         public async Task<IEnumerable<string>> GetAllFriends()
         {
@@ -50,11 +51,29 @@ namespace AADFriendsPickerAPI.Controllers
                     SecondUserId = friendId
                 };
                 await _context.Friendships.AddAsync(friendShip);
-            
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
             }
+            return await GetAll();
+        }
 
+        [Route("remove")]
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> RemoveFriend([FromBody] RemoveFriendModel model)
+        {
+            var friendId = model.FriendId;
+            var userId = HttpContext.User.Claims.First(c => c.Type == ClaimConstants.ObjectId).Value;
+            if ((await GetAllFriends()).Any(f => f == friendId))
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                _context.Friendships.RemoveRange(
+                    _context.Friendships.Where(f => (f.FirstUserId == friendId || f.SecondUserId == friendId) &&
+                                                    (f.FirstUserId == userId || f.SecondUserId == userId))
+                );
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
             return await GetAll();
         }
     }

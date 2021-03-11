@@ -102,6 +102,17 @@ export class AppComponent implements OnInit {
         await this.updateFriends();
     }
 
+    async removeFriend(user: MicrosoftGraph.User) {
+        var model = new AddFriendModel(user!.id!.toString());
+        this.friendIds = await this.client.post<AddFriendModel>(environment.customApi + "/remove", model).toPromise();
+
+        // Remove locally
+        const index = this.friends.indexOf(user);
+        if (index !== -1) {
+            this.friends.splice(index, 1);
+        }   
+    }
+
     public isFriend(user: MicrosoftGraph.User): boolean {
         return this.friendIds != null && this.friendIds.indexOf(user!.id) != -1;
     }
